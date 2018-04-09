@@ -2,18 +2,53 @@
 // Created by Imran Thompson on 8/4/18.
 //
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+
 #include "HexDump.h"
 
-using namespace std;
+// Process the file
+void HexDump::processInput()
+{
+    // local variable to maintain position (offset) in file.
+    int lPosition = 0;
+    // do while loops through each 16 byte block and prints the hex dump to the screen
+    do {
+        this->fData.read(fInput);
 
+        std::cout << std::setw(8) << std::setfill('0') << std::hex << lPosition << ":\t";
+
+        std::cout << this->fData << std::endl;
+
+        lPosition += this->fData.size();
+
+    } while ( this->fData.size() == 16 );
+
+    this->close();
+}
+
+// overloaded () operator
+bool HexDump::operator()(const std::string& aInputFileName)
+{
+    if(this->open(aInputFileName))
+    {
+        this->processInput();
+        this->close();
+        return true;
+    }
+
+    this->close();
+    return false;
+}
+
+// file open function
 bool HexDump::open(const std::string& aInputFileName)
 {
     fInput.open(aInputFileName, std::ios_base::binary | std::ios_base::in);
+
     if(!fInput.is_open())
     {
-        cerr << aInputFileName << " could not be opened..." << endl;
+        std::cerr << aInputFileName << " could not be opened..." << std::endl;
         this->close();
         return false;
     }
@@ -21,32 +56,9 @@ bool HexDump::open(const std::string& aInputFileName)
     return true;
 }
 
+// file close function
 void HexDump::close()
 {
-    fInput.clear();
-    fInput.close();
-}
-
-void HexDump::processInput()
-{
-    int position = 0;
-    do {
-
-        fData.read(fInput);
-        cout << setw(8) << setfill('0') << setbase(16) << position;
-        cout << fData << endl;
-
-        position += fData.size();
-
-    } while(fData.size() == 16);
-}
-
-bool HexDump::operator()(const std::string& aInputFileName)
-{
-    if(open(aInputFileName))
-    {
-        processInput();
-        return true;
-    }
-    return false;
+    this->fInput.clear();
+    this->fInput.close();
 }
